@@ -1,0 +1,498 @@
+.container {
+  position: relative;
+  max-width: 1440px;
+  border-inline: 1px solid #c7cdd9;
+  font-family: "PT Sans";
+  padding-top: 170px;
+  background: linear-gradient(#c7cdd9, #c7cdd9) center / 1px 100%,
+    linear-gradient(#c7cdd9, #c7cdd9) center / 100% 1px;
+  background-repeat: no-repeat;
+  font-family: "PT Sans", sans-serif;
+  min-height: 100dvh;
+  overflow: clip;
+  box-sizing: border-box;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  top: 172px;
+  left: 0;
+  width: 5px;
+  height: 120px;
+  background: linear-gradient(to bottom, #3877ee, #ef5da8);
+  pointer-events: none;
+  z-index: 2;
+}
+
+h1 {
+  color: #42567a;
+  font-size: clamp(20px, 2.91vw, 56px);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+  margin-left: 80px;
+}
+
+.timelinecenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 80px;
+  justify-content: center;
+  align-items: center;
+  font-size: clamp(56px, 10.41vw, 200px);
+
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -4px;
+  z-index: 20;
+}
+
+.circleWrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 536px;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 21;
+
+  --n: 6; /* переопределили инлайном в JSX */
+  /* радиус: половина круга - половина точки (6px → 3px) - 1px бордер круга */
+  --r: calc(536px / 2 - 3px - -2px);
+  /* стартовый угол (по желанию): -90deg = сверху; 0deg = справа */
+  --start: -60deg;
+}
+
+.circleLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 10; /* ниже текста */
+  pointer-events: none;
+}
+
+.circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 536px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid #c7cdd9;
+  pointer-events: none;
+  z-index: 10; /* линия круга ниже текста */
+}
+
+.dotsLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  transform: rotate(var(--shift, 0deg)); /* КРУТИМ только слой точек */
+  transition: transform 0.5s ease;
+}
+
+.markerLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 41; /* над точками */
+  pointer-events: none; /* слой прозрачен для событий, кроме специальных зон */
+}
+
+.dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  aspect-ratio: 1;
+  background-color: #42567a;
+  border: none;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 40; /* точки над текстом */
+  transition: width 0.5s ease, height 0.5s ease, background-color 0.5s ease,
+    border-color 0.5s ease; /* ⇐ плавно проявим рамку */
+
+  --i: 0; /* индекс точки */
+
+  transform: translate(-50%, -50%)
+    rotate(calc(var(--start) + var(--i) * 360deg / var(--n)))
+    translate(var(--r));
+}
+
+.dot::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: auto; /* можно кликом ловить большую область */
+  /* но без тени и без border! */
+}
+
+.dot:hover {
+  width: 56px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(48, 62, 88, 0.5);
+  text-align: center;
+  background-color: #f4f5f9;
+}
+
+.bigDot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(48, 62, 88, 0.5);
+  box-shadow: 0 8px 24px rgba(56, 119, 238, 0.12);
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  /* перехватываем события, чтобы «маленькая точка за большим кругом»
+     не ловила hover/click сквозь большой маркер */
+  pointer-events: auto;
+  z-index: 41; /* большой маркер поверх точек и текста */
+  background-color: #f4f5f9;
+  transition: transform 1s ease;
+
+  --i: 0;
+  --rb: calc(536px / 2 - 88px / 2 - -45px); /* отступим от бордера круга */
+
+  transform: translate(-50%, -50%)
+    rotate(calc(var(--start) + var(--i) * 360deg / var(--n)))
+    translate(var(--rb));
+}
+
+/* Небольшой буфер вокруг большого маркера, чтобы блокировать hover у точек позади */
+.bigDot::before {
+  content: "";
+  position: absolute;
+  inset: -8px; /* слегка больше видимого круга */
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.bigDotInner {
+  transform: rotate(calc(-1 * (var(--start) + var(--i) * 360deg / var(--n))));
+}
+
+.bigDotCount {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #42567a;
+}
+.bigDotLabel {
+  margin-left: 440px;
+  margin-top: 20px;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  color: #42567a;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 30px;
+}
+
+.leftyear {
+  color: #5d5fef;
+}
+
+.rightyear {
+  color: #ef5da8;
+}
+
+.buttonlider {
+  width: clamp(25px, 2.6vw, 50px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: none;
+  border: 1px solid #42567a;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.buttonlider:hover {
+  background-color: white;
+}
+.buttonsslider {
+  display: flex;
+  gap: 20px;
+}
+
+// .slideCounter {
+//   margin-top: auto;
+// }
+
+label {
+  font-size: 14px;
+  color: #42567a;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.slideCounter {
+  display: block; /* чтобы работал вертикальный margin */
+  margin-bottom: 8px;
+  color: #42567a;
+}
+
+.slidercontainer {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 40px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.iconRight svg {
+  transform: rotate(180deg);
+  transform-origin: 50% 50%;
+}
+
+.containerGrid {
+  margin-top: 52px; /* базовый отступ над гридом дат */
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start; /* выравниваем элементы от начала контейнера */
+  gap: 40px;
+}
+
+.labelTime {
+  display: block;
+  margin-bottom: 15px;
+  color: #3877ee;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 120%;
+  text-transform: uppercase;
+}
+
+p {
+  color: #42567a;
+  font-size: clamp(14px, 1.04vw, 20px);
+  font-style: normal;
+  font-weight: 400;
+  line-height: 30px;
+}
+
+.arrowCell {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  filter: drop-shadow(0 0 15px rgba(56, 119, 238, 0.1));
+  color: #3877ee;
+}
+
+.arrowCellLeft {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  filter: drop-shadow(0 0 15px rgba(56, 119, 238, 0.1));
+  color: #3877ee;
+}
+
+.dotIndex {
+  color: #42567a;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%)
+    rotate(
+      calc(-1 * (var(--start) + var(--i) * 360deg / var(--n) + var(--shift)))
+    );
+}
+
+.gone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.gridSwiper {
+  min-height: 140px;
+  flex: 1 1 auto; /* чтобы слайдер занимал доступную ширину */
+  min-width: 0; /* предотвращает переполнение во флекс-контейнере */
+}
+
+/* Индикаторные точки для мобилки (по умолчанию скрыты) */
+.bottomDots {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bottomDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c7cdd9;
+  border: none;
+  padding: 0;
+  opacity: 0.7;
+}
+
+.bottomDotActive {
+  background: #42567a;
+  opacity: 1;
+}
+
+@media (max-width: 420px) {
+  .container {
+    margin-inline: 20px 27px;
+    padding-bottom: 13.5px;
+    border: none;
+    background: none;
+    padding-top: 59px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  h1 {
+    margin: 0px;
+  }
+
+  p {
+    font-weight: 400;
+    line-height: 145%;
+  }
+
+  .timelinecenter {
+    /* Размещаем под h1 с фиксированным отступом в потоке */
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin-top: 56px; /* ровно 56px от заголовка */
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* по центру */
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .timelinecenter::after {
+    content: "";
+    display: block;
+    height: 1px;
+    background: #c7cdd9;
+    margin-top: 58px;
+    width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .slidercontainer {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex: 1 1 auto;
+    height: auto;
+    margin-top: 20px;
+  }
+
+  .slidebuttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: auto;
+    order: 2;
+  }
+
+  .buttonlider {
+    display: grid;
+    place-items: center;
+    line-height: 0;
+    width: 25px;
+    aspect-ratio: 1;
+  }
+
+  .buttonsslider {
+    gap: 8.5px;
+    order: 3;
+  }
+
+  label {
+    margin-bottom: 8px;
+    font-size: 1px; /* общий размер для label на мобилке; будет перебит .slideCounter */
+  }
+
+  .labelTime {
+    font-size: 16px;
+  }
+
+  .containerGrid {
+    order: 1;
+    margin-top: 0; /* отступ теперь задаём на slidercontainer */
+  }
+
+  .slideCounter {
+    order: 2; /* оставляем порядок, убираем auto, чтобы не прижималось */
+    font-size: 14px; /* вернуть видимый размер счётчика на мобилке */
+  }
+
+  /* Прячем круг полностью на маленьких экранах */
+  .arrowCellLeft,
+  .arrowCell,
+  .container::before,
+  .circleContainer,
+  .circleWrap,
+  .circleLayer,
+  .markerLayer,
+  .circle {
+    display: none !important;
+  }
+
+  .buttonlider svg {
+    width: 5px;
+    height: 10px;
+  }
+
+  /* показываем индикаторные точки только на мобилке */
+  .bottomDots {
+    display: flex;
+    margin-left: 58px; /* правее от 00/06 на 58px */
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    margin-inline: 320px 160px;
+  }
+}
